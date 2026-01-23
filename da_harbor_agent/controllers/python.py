@@ -13,7 +13,7 @@ class PythonController:
     Executes commands directly using subprocess.
     Designed to run inside the Docker container.
     """
-    def __init__(self, work_dir="/workspace"):
+    def __init__(self, work_dir):
         self.work_dir = work_dir
 
     def _wrap_with_print(self, command):
