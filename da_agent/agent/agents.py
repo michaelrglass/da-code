@@ -11,7 +11,6 @@ from typing import Dict, List
 from da_agent.agent.prompts import SYS_PROMPT_IN_OUR_CODE
 from da_agent.agent.action import Bash, Action, Terminate, Python, SQL
 from da_agent.envs.da_agent import DA_Agent_Env
-from openai import AzureOpenAI
 from typing import Dict, List, Optional, Tuple, Any, TypedDict
 
 from agent.models import call_llm
