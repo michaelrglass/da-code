@@ -11,6 +11,7 @@ from typing import Dict, List
 from da_harbor_agent.agent.prompts import SYS_PROMPT_IN_OUR_CODE
 from da_harbor_agent.agent.action import Bash, Action, Terminate, Python, SQL
 from da_harbor_agent.envs.da_agent import DA_Agent_Env
+from da_harbor_agent.controllers.action_controller import ActionController
 from typing import Dict, List, Optional, Tuple, Any, TypedDict
 
 from agent.models import call_llm
@@ -46,21 +47,21 @@ class PromptAgent:
         self.observations = []
         self.system_message = ""
         self.history_messages = []
-        self.env = None
+        self.action_controller: Optional[ActionController] = None
         self.codes = []
         self._AVAILABLE_ACTION_CLASSES = [Bash, Python, SQL, Terminate]
-        # self._AVAILABLE_ACTION_CLASSES = [Bash, Terminate]
         self.work_dir = "/workspace"
-        
-    def set_env_and_task(self, env: DA_Agent_Env):
-        self.env = env  # NOTE: only uses env.task_config['instruction'] and env.step
+        self.instruction = ""
+
+    def set_controller_and_task(self, action_controller: ActionController, instruction: str):
+        self.action_controller = action_controller
         self.thoughts = []
         self.responses = []
         self.actions = []
         self.observations = []
         self.codes = []
         self.history_messages = []
-        self.instruction = self.env.task_config['instruction']
+        self.instruction = instruction
         action_space = "".join([action_cls.get_action_description() for action_cls in self._AVAILABLE_ACTION_CLASSES])
         self.system_message = SYS_PROMPT_IN_OUR_CODE.format(work_dir=self.work_dir, action_space=action_space, task=self.instruction, max_steps=self.max_steps)
         self.history_messages.append({
@@ -186,10 +187,9 @@ class PromptAgent:
                     break
         
         return output_action
-    
-    
+
     def run(self):
-        assert self.env is not None, "Environment is not set."
+        assert self.action_controller is not None, "Controller is not set."
         result = ""
         done = False
         step_idx = 0
@@ -218,7 +218,7 @@ class PromptAgent:
                         obs = "The action is the same as the last one, please provide a different action."
                         repeat_action = True
                 else:
-                    obs, done = self.env.step(action)
+                    obs, done = self.action_controller.step(action)
                     last_action = action
                     repeat_action = False
 

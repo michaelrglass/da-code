@@ -10,6 +10,8 @@ from tqdm import tqdm
 
 from da_harbor_agent.envs.da_agent import DA_Agent_Env
 from da_harbor_agent.agent.agents import PromptAgent
+from da_harbor_agent.controllers.python import PythonController
+from da_harbor_agent.controllers.action_controller import ActionController
 
 
 #  Logger Configs {{{ #
@@ -97,6 +99,7 @@ def test(
         }
     }
     
+    # FIXME: remove
     agent = PromptAgent(
         model=args.model,
         max_tokens=args.max_tokens,
@@ -121,7 +124,6 @@ def test(
                 indices = list(map(int, args.example_index.split(",")))
                 task_configs = [task_configs[i] for i in indices]
     
-    # TODO: run.py will operate on a single task
     for task_config in task_configs:
         instance_id = experiment_id +"/"+ task_config["id"]
         output_dir = os.path.join(args.output_dir, instance_id)
@@ -146,19 +148,25 @@ def test(
             mnt_dir=output_dir
         )
     
-        agent.set_env_and_task(env)
+        task = env.task_config['instruction']
+
+        # FIXME: instead call /da_harbor_agent/run_agent.py inside the container with -t shell_escape(task)
+        #####
+        python_controller = PythonController(container=env.container, work_dir=env.work_dir)
+        action_controller = ActionController(python_controller)
+        agent.set_controller_and_task(action_controller,  task)
     
         logger.info('Task input:' + task_config['instruction'])
         done, result_output = agent.run()
-        trajectory = agent.get_trajectory()  # TODO: save to mounted agent log dir
-        # TODO: save result_output to answer.json if it has that answer type
+        trajectory = agent.get_trajectory()
         os.makedirs(os.path.join(output_dir, "dabench"), exist_ok=True)
-        
         dabench_result = {"finished": done, "steps": len(trajectory["trajectory"]),
                            "result": result_output, **trajectory}
         with open(os.path.join(output_dir, "dabench/result.json"), "w") as f:
             json.dump(dabench_result, f, indent=2)
+        #####
         
+
         logger.info("Finished %s", instance_id)
         env.close()
 
