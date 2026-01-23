@@ -1,23 +1,8 @@
-import base64
-import json
+
 import logging
 import os
-import re
 import time
-from http import HTTPStatus
-from io import BytesIO
-
-from openai import AzureOpenAI
-from typing import Dict, List, Optional, Tuple, Any, TypedDict
-import dashscope
-from groq import Groq
-import google.generativeai as genai
-import openai
-import requests
-import tiktoken
-import signal
-from azure.identity import AzureCliCredential, get_bearer_token_provider
-from openai import AzureOpenAI
+from openai import OpenAI
 
 logger = logging.getLogger("api-llms")
 
@@ -26,18 +11,11 @@ def call_llm(payload):
     model = payload["model"]
     stop = ["Observation:","\n\n\n\n","\n \n \n"]
     
-    api_scope_base = "api://feb7b661-cac7-44a8-8dc1-163b63c23df2"
-    tenant_id = "72f988bf-86f1-41af-91ab-2d7cd011db47"
-    scope = api_scope_base + "/.default"
-    
-    token_provider = get_bearer_token_provider(AzureCliCredential(tenant_id=tenant_id), scope)
-    gpt_endpoint = "https://cloudgpt-openai.azure-api.net/openai/"
-    api_version= "2025-04-01-preview"
-    
-    client = AzureOpenAI(
-        api_version=api_version,
-        base_url=gpt_endpoint,
-        azure_ad_token_provider=token_provider
+    # Point the OpenAI client at your LiteLLM proxy.
+    # Most LiteLLM proxies expose an OpenAI-compatible API under /v1.
+    client = OpenAI(
+        base_url="https://ete-litellm.ai-models.vpc-int.res.ibm.com/v1",
+        api_key=os.environ.get("IBM_LITELLM_API_KEY", "DUMMY")
     )
     code_value = ""
     
@@ -48,7 +26,7 @@ def call_llm(payload):
             completion = client.chat.completions.create(
                 model=model,
                 messages=payload['messages'], 
-                max_completion_tokens=payload['max_tokens'], 
+                max_tokens=payload['max_tokens'],
                 # top_p=payload['top_p'],
                # temperature=payload['temperature']
             )
