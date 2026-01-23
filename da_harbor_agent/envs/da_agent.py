@@ -1,33 +1,21 @@
 import logging
 import os
-import subprocess
-import tempfile
 import time
-from typing import Callable, Any, Optional, Tuple
+from typing import Any, Dict
 
-from typing import List, Dict, Union
 from docker.models.containers import Container
 from docker.client import DockerClient
 from docker.errors import ImageNotFound
-import shutil, pathlib, docker, time, copy
-from da_harbor_agent.controllers.python import PythonController
-from da_harbor_agent.envs.utils import *
-from da_harbor_agent import configs
-from da_harbor_agent.agent.action import Bash, Action, Terminate, Python, SQL
-import signal
+import shutil, pathlib, docker
+from da_harbor_agent.envs.utils import create_folder_if_not_exists, delete_files_in_folder
+from da_harbor_agent.agent.action import Action
 
 logger = logging.getLogger("da_agent.env")
 
 # constants
-START_UP_DELAY = 2 # start up delay for docker container
-DEFAULT_TIME_OUT = 60 # default waiting time for each action
-MAX_OBS_LENGTH = 3000
-EMPTY_DATA_PATH = 'da_agent/data/empty' # an empty data directory
-DEFAULT_IMAGE_DIR = 'da_agent/images' # default directory to store docker images
-DEFAULT_WORK_DIR = '/workspace' # default working directory in the container
-DEFAULT_MNT_DIR = 'da_agent/mnt' # default directory to copy and mount data path, also the output directory
-TASK_FINISHED = "task_finished" # infos key
-ACTION_EXEC = "action_executed" # infos key
+START_UP_DELAY = 2
+DEFAULT_IMAGE_DIR = 'da_harbor_agent/images'
+DEFAULT_WORK_DIR = '/workspace'
 
 
 class DA_Agent_Env:
@@ -64,8 +52,6 @@ class DA_Agent_Env:
         logger.info("Initializing...")
         self._construct_container()
         
-        self.controller = PythonController(container=self.container, work_dir=self.work_dir)
-
         logger.info("Setting up environment...")
         
         dir = os.path.join(self.source_dir, self.task_id)
@@ -123,20 +109,21 @@ class DA_Agent_Env:
         allowed_params = ['command', 'ports', 'restart_policy', 'entrypoint', 'hostname', 'domainname', 'name', 'user', 
                           'mac_address', 'platform', 'network_mode', 'network_disabled', 'healthcheck', "environment"]
         kwargs = {k: self.kwargs[k] for k in self.kwargs if k in allowed_params}
-        extra_params = {'detach': True, 'tty': True, 'stdout': True, 'stderr': True, 'stdin_open': True, **kwargs}
-
+        environment = {# "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY"),
+                       "IBM_LITELLM_API_KEY": os.environ.get("IBM_LITELLM_API_KEY"),}
+        extra_params = {'detach': True, 'tty': True, 'stdout': True, 'stderr': True, 
+                        'stdin_open': True, 'environment': environment, **kwargs}
+        
         try:
             client: DockerClient = docker.from_env()
             image = client.images.get(self.image_name)
             self.container: Container = client.containers.run(image=image, volumes=volumes, **extra_params)
         except ImageNotFound as e:
             dockerfile_path = os.path.join(DEFAULT_IMAGE_DIR, self.image_name)
-            if os.path.exists(dockerfile_path):
-                logger.info(f"Image {self.image_name} not found, try to build from dockerfile {dockerfile_path} ...")
-                image = client.images.build(path=dockerfile_path, tag=self.image_name, rm=True)[0]
-            else:
-                logger.info(f"Image {self.image_name} not found, try to pull from Dockerhub ...")
-                image = client.images.pull(self.image_name)[0]
+            logger.info(f"Image {self.image_name} not found, try to build from dockerfile {dockerfile_path} ...")
+            image = client.images.build(path=os.getcwd(), 
+                                        dockerfile=os.path.join(dockerfile_path, 'Dockerfile'),
+                                        tag=self.image_name, rm=True)[0]
             self.container: Container = client.containers.run(image=image, volumes=volumes, **extra_params)
         except Exception as e:
             logger.info(f"Failed to construct container from image {self.image_name} with error: {e}")
@@ -146,62 +133,3 @@ class DA_Agent_Env:
         logger.info(f"Connected to container[name={self.container.name}, id={self.container.id}] from image {self.image_name} ...")    
         
         return self.container
-    
-    def step(self, action: Action):
-        try:
-            with timeout(DEFAULT_TIME_OUT,"Action execution time exceeded!"):
-                done = False
-                if isinstance(action, Bash):
-                    observation = self.execute_code_action(action)
-                elif isinstance(action, SQL):
-                    observation = self.execute_sql_action(action)
-                # elif isinstance(action, CreateFile):
-                #     observation = self.create_file_action(action)
-                # elif isinstance(action, EditFile):
-                #     observation = self.edit_file_action(action)
-                elif isinstance(action, Python):
-                    observation = self.execute_python_action(action)
-                elif isinstance(action, Terminate):
-                    observation = "Terminate"
-                    done = True
-                else:
-                    raise ValueError(f"Unrecognized action type {action.action_type} !")
-        except TimeoutError as e:
-            observation = str(e)
-        
-        observation = self._handle_observation(observation)
-        # logger.info("Observation: %s", observation)
-        return observation, done
-    
-    def _handle_observation(self, observation):
-        max_length = MAX_OBS_LENGTH  
-        if len(observation) > max_length:
-            truncated_observation = observation[:max_length] + "\n[Observation too long, truncated; Try other commands to get the left part.]"
-            return truncated_observation
-        return observation
-
-
-    def execute_code_action(self, action: Bash):
-        """ Execute action in bash shell """
-        
-        obs = self.controller.execute_command(action.code)
-        if obs is None or obs == '':
-            obs = "Command executed successfully. No output."
-        
-        return obs
-
-    def execute_python_action(self, action: Python):
-        """ Execute action in python """
-        obs = self.controller.execute_python_file(action.filepath, action.code)
-        if obs is None or obs == '':
-            obs = f"{action.filepath} executed successfully. No output."
-        
-        return obs
-    
-    def execute_sql_action(self, action: Python):
-        """ Execute action in sql"""
-        obs = self.controller.execute_sql_code(action.file_path, action.code, action.output)
-        if obs is None or obs == '':
-            obs = f"SQL command executed successfully. No output."
-        
-        return obs
