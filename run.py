@@ -56,14 +56,14 @@ def config() -> argparse.Namespace:
     parser.add_argument("--max_memory_length", type=int, default=15)
     parser.add_argument("--suffix", '-s', type=str, default="")
     
-    parser.add_argument("--model",'-m',type=str, default="gpt-4o")
+    parser.add_argument("--model",'-m',type=str, default="Azure/gpt-4o")
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--top_p", type=float, default=0.9)
     parser.add_argument("--max_tokens", type=int, default=1500)
     parser.add_argument("--stop_token", type=str, default=None)
     
     # example config
-    parser.add_argument("--task_config","-t", type=str, default="da_code/configs/task/examples.jsonl")
+    parser.add_argument("--task_config","-t", type=str, default="da_code/configs/task/sa.jsonl")
     parser.add_argument("--source_dir", type=str, default="da_code/source")
     parser.add_argument("--example_index", "-i", type=str, default="all", help="index range of the examples to run, e.g., '0-10', '2,3', 'all'")
     parser.add_argument("--example_name", "-n", type=str, default="", help="name of the example to run")
