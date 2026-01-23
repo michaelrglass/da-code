@@ -6,7 +6,6 @@ import os
 import shutil
 import sys
 
-from da_harbor_agent.envs.utils import DEFAULT_WORK_DIR
 from da_harbor_agent.agent.agents import PromptAgent
 from da_harbor_agent.controllers.python import PythonController
 from da_harbor_agent.controllers.action_controller import ActionController
@@ -123,7 +122,9 @@ def test(
     # log args
     logger.info("Args: %s", args)
 
-    work_dir = DEFAULT_WORK_DIR
+    work_dir = os.getcwd()
+    instructions = args.task
+    # TODO: strip extra instructions
 
     # Snapshot files before agent runs
     original_files = get_all_files(work_dir)
@@ -139,9 +140,9 @@ def test(
 
     python_controller = PythonController(work_dir=work_dir)
     action_controller = ActionController(python_controller)
-    agent.set_controller_and_task(action_controller, args.task)
+    agent.set_controller_and_task(action_controller, instructions)
 
-    logger.info('Task input:' + args.task)
+    logger.info('Task input:' + instructions)
     done, result_output = agent.run()
     trajectory = agent.get_trajectory()
 

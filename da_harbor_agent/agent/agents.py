@@ -1,10 +1,10 @@
 import logging
 import re
+import os
 from typing import Dict, List
 from da_harbor_agent.agent.prompts import SYS_PROMPT_IN_OUR_CODE
 from da_harbor_agent.agent.action import Bash, Action, Terminate, Python, SQL
 from da_harbor_agent.controllers.action_controller import ActionController
-from da_harbor_agent.envs.utils import DEFAULT_WORK_DIR
 from typing import Dict, List, Optional
 
 from da_harbor_agent.agent.models import call_llm
@@ -43,7 +43,7 @@ class PromptAgent:
         self.action_controller: Optional[ActionController] = None
         self.codes = []
         self._AVAILABLE_ACTION_CLASSES = [Bash, Python, SQL, Terminate]
-        self.work_dir = DEFAULT_WORK_DIR
+        self.work_dir = os.getcwd()
         self.instruction = ""
 
     def set_controller_and_task(self, action_controller: ActionController, instruction: str):
