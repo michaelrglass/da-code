@@ -8,7 +8,6 @@ from typing import Any, Union, Optional
 from typing import Dict, List
 import uuid
 import requests
-import docker
 import shutil
 from da_agent import configs
 
