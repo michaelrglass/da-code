@@ -144,6 +144,7 @@ def test(
             "--max_tokens", str(args.max_tokens),
             "--temperature", str(args.temperature),
             "--top_p", str(args.top_p),
+            "--logs_dir", "/workspace/logs",
         ]
         logger.info('Task input: %s', task)
         exit_code, output = env.container.exec_run(
