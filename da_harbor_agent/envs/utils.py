@@ -9,6 +9,7 @@ import json
 import xml.etree.ElementTree as ET
 import yaml
 
+DEFAULT_WORK_DIR = '/workspace'
 
 TIMEOUT_DURATION = 25
 

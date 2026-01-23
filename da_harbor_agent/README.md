@@ -5,8 +5,19 @@
 * run.py should call run_agent.py inside the docker container
 
 ```
-Let's redesign run.py and PythonController.  I want the PromptAgent to run inside the docker container. So PythonController should not have a container object anymore, it will instead directly execute commands since it will be running inside the container. The Dockerfile should also copy the da_harbor_agent source directory inside the Docker environment, so when run.py spins up a docker container it can call run_agent.py -t "task instructions" to run the agent inside the container. 
-Try to keep the changes limited so it is clear that the effect is equivalent.  
+Let's redesign run.py and PythonController.  I want the PromptAgent (in agents.py) to run inside the docker container. So PythonController should not have a container object anymore, it will instead directly execute commands since it will be running inside the container. When run.py spins up a docker container it can call run_agent.py -t "task instructions" to run the agent inside the container. 
+Try to keep the changes limited so it is clear that the effect is equivalent.
+Start by making a plan.  
+```
+
+```bash
+python da_harbor_agent/run.py
+
+
+python evaluate.py \
+    --output_dir output_hb/gpt-4o-a59b4bd7 \
+    --eval_json da_code/configs/eval/eval_sa.jsonl \
+    --timeout_seconds 300
 ```
 
 ```bash

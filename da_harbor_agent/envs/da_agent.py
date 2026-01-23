@@ -8,14 +8,13 @@ from docker.client import DockerClient
 from docker.errors import ImageNotFound
 import shutil, pathlib, docker
 from da_harbor_agent.envs.utils import create_folder_if_not_exists, delete_files_in_folder
-from da_harbor_agent.agent.action import Action
+from da_harbor_agent.envs.utils import DEFAULT_WORK_DIR
 
 logger = logging.getLogger("da_agent.env")
 
 # constants
 START_UP_DELAY = 2
 DEFAULT_IMAGE_DIR = 'da_harbor_agent/images'
-DEFAULT_WORK_DIR = '/workspace'
 
 
 class DA_Agent_Env:

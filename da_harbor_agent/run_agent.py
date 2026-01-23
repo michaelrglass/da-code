@@ -3,12 +3,9 @@ import datetime
 import json
 import logging
 import os
-import random
 import sys
 
-from tqdm import tqdm
-
-from da_harbor_agent.envs.da_agent import DEFAULT_WORK_DIR
+from da_harbor_agent.envs.utils import DEFAULT_WORK_DIR
 from da_harbor_agent.agent.agents import PromptAgent
 from da_harbor_agent.controllers.python import PythonController
 from da_harbor_agent.controllers.action_controller import ActionController
@@ -20,10 +17,14 @@ logger.setLevel(logging.DEBUG)
 
 datetime_str: str = datetime.datetime.now().strftime("%Y%m%d@%H%M%S")
 
-file_handler = logging.FileHandler(os.path.join("logs", "normal-{:}.log".format(datetime_str)), encoding="utf-8")
-debug_handler = logging.FileHandler(os.path.join("logs", "debug-{:}.log".format(datetime_str)), encoding="utf-8")
+# Create logs directory inside workspace (mounted volume)
+logs_dir = "/workspace/logs"
+os.makedirs(logs_dir, exist_ok=True)
+
+file_handler = logging.FileHandler(os.path.join(logs_dir, "normal-{:}.log".format(datetime_str)), encoding="utf-8")
+debug_handler = logging.FileHandler(os.path.join(logs_dir, "debug-{:}.log".format(datetime_str)), encoding="utf-8")
 stdout_handler = logging.StreamHandler(sys.stdout)
-sdebug_handler = logging.FileHandler(os.path.join("logs", "sdebug-{:}.log".format(datetime_str)), encoding="utf-8")
+sdebug_handler = logging.FileHandler(os.path.join(logs_dir, "sdebug-{:}.log".format(datetime_str)), encoding="utf-8")
 
 file_handler.setLevel(logging.INFO)
 debug_handler.setLevel(logging.DEBUG)

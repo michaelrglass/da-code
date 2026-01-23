@@ -1,20 +1,19 @@
-import json
 import logging
-import random
-from typing import Any, Dict, Optional
-import docker
-import requests
+import subprocess
+from typing import Optional
 import os
 import ast
-import tempfile
 import platform
 from da_harbor_agent.configs.sql_template import SQL_TEMPLATE
 logger = logging.getLogger("spider.pycontroller")
 
 
 class PythonController:
-    def __init__(self, container, work_dir="/workspace"):
-        self.container = container
+    """
+    Executes commands directly using subprocess.
+    Designed to run inside the Docker container.
+    """
+    def __init__(self, work_dir="/workspace"):
         self.work_dir = work_dir
 
     def _wrap_with_print(self, command):
@@ -62,11 +61,10 @@ class PythonController:
         return self.execute_command(command)
     
     def execute_command(self, command: str):
-        cmd = ["bash", "-c", command]
-        exit_code, output = self.container.exec_run(cmd, workdir=self.work_dir)
         ## can't create a new python environment in the container, eg. python3 -m venv /path/to/venv
         if "venv" in command:
             return "Creating a new python environment is not allowed in the container. You can use 'pip install' to install the required packages."
+
         is_cd_flag = command.strip().startswith("cd ")
         if is_cd_flag:
             changed = command[command.index("cd ") + 3:].strip()
@@ -74,8 +72,16 @@ class PythonController:
                 changed = changed[:changed.index("&&")].strip()
             self.work_dir = self.update_working_directory(self.work_dir, changed)
             return f"The command to change directory to {self.work_dir} is executed successfully."
-        
-        return output.decode("utf-8", errors="ignore").strip()
+
+        # Execute command directly using subprocess (running inside container)
+        result = subprocess.run(
+            ["bash", "-c", command],
+            cwd=self.work_dir,
+            capture_output=True,
+            text=True
+        )
+        output = result.stdout + result.stderr
+        return output.strip()
 
     def _file_exists(self, file_path: str) -> bool:
         check_command = f"test -f {file_path} && echo 'exists' || echo 'not exists'"

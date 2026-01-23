@@ -3,15 +3,9 @@ import datetime
 import json
 import logging
 import os
-import random
 import sys
 
-from tqdm import tqdm
-
 from da_harbor_agent.envs.da_agent import DA_Agent_Env
-from da_harbor_agent.agent.agents import PromptAgent
-from da_harbor_agent.controllers.python import PythonController
-from da_harbor_agent.controllers.action_controller import ActionController
 
 
 #  Logger Configs {{{ #
@@ -99,16 +93,6 @@ def test(
         }
     }
     
-    # FIXME: remove
-    agent = PromptAgent(
-        model=args.model,
-        max_tokens=args.max_tokens,
-        top_p=args.top_p,
-        temperature=args.temperature,
-        max_memory_length=args.max_memory_length,
-        max_steps=args.max_steps,
-    )
-    
     ## load task configs
     assert os.path.exists(args.task_config) and args.task_config.endswith(".jsonl"), f"Invalid task_config, must be a valid jsonl file: {args.task_config}"
     with open(args.task_config, "r", encoding="utf-8") as f:
@@ -150,22 +134,26 @@ def test(
     
         task = env.task_config['instruction']
 
-        # FIXME: instead call /da_harbor_agent/run_agent.py inside the container with -t shell_escape(task)
-        #####
-        python_controller = PythonController(container=env.container, work_dir=env.work_dir)
-        action_controller = ActionController(python_controller)
-        agent.set_controller_and_task(action_controller,  task)
-    
-        logger.info('Task input:' + task_config['instruction'])
-        done, result_output = agent.run()
-        trajectory = agent.get_trajectory()
-        os.makedirs(os.path.join(output_dir, "dabench"), exist_ok=True)
-        dabench_result = {"finished": done, "steps": len(trajectory["trajectory"]),
-                           "result": result_output, **trajectory}
-        with open(os.path.join(output_dir, "dabench/result.json"), "w") as f:
-            json.dump(dabench_result, f, indent=2)
-        #####
-        
+        # Run agent inside container
+        cmd = [
+            "python", "/da_harbor_agent/run_agent.py",
+            "-t", task,
+            "-m", args.model,
+            "--max_steps", str(args.max_steps),
+            "--max_memory_length", str(args.max_memory_length),
+            "--max_tokens", str(args.max_tokens),
+            "--temperature", str(args.temperature),
+            "--top_p", str(args.top_p),
+        ]
+        logger.info('Task input: %s', task)
+        exit_code, output = env.container.exec_run(
+            cmd, workdir="/workspace",
+            environment={"PYTHONPATH": "/"}
+        )
+        logger.info("Agent output:\n%s", output.decode("utf-8"))
+
+        # Results are written to dabench/result.json by run_agent.py
+        # (already in mounted directory at output_dir)
 
         logger.info("Finished %s", instance_id)
         env.close()

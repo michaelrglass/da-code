@@ -22,9 +22,6 @@ RUN pip install openai google-cloud-bigquery db-dtypes pandas matplotlib scikit-
 # copy da_harbor_agent to /agent
 COPY da_harbor_agent /da_harbor_agent
 
-# TODO: also set PYTHONPATH=/da_harbor_agent and OPENAI_API_KEY=${OPENAI_API_KEY}
-ENV PYTHONPATH=/da_harbor_agent
-
 # Set the default command to run when starting the container
 CMD ["/bin/bash"]
 
