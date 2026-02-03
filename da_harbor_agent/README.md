@@ -6,12 +6,36 @@
 
 ## DA-Harbor-Agent plot
 ```bash
+docker build -f da_harbor_agent/images/da_harbor_agent-image/Dockerfile -t da_harbor_agent-image .
+
 python da_harbor_agent/run.py --task_config da_code/configs/task/visual.jsonl
 
 python evaluate.py \
-    --output_dir output_hb/??? \
+    --output_dir output/dahagpt-4o-d9bc69f9 \
     --eval_json da_code/configs/eval/eval_visual.jsonl \
     --timeout_seconds 300
+
+Number of results: 72
+Average score: 0.3055555555555556
+Average finished: 0.9722222222222222
+====================================
+                       score  finished
+type
+data visualization  0.305556  0.972222
+-------------------------------
+             score  finished
+hardness
+Easy      0.538462  1.000000
+Hard      0.200000  0.933333
+Medium    0.272727  0.977273
+-------------------------------
+             score  finished
+big_type
+EDA       0.305556  0.972222
+-------------------------------
+                score  finished
+result_type
+plot         0.305556  0.972222
 ```
 
 ## With fix for saving input files too

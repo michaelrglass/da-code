@@ -1,6 +1,9 @@
 import os
 import subprocess
 from pathlib import Path
+import logging
+
+logger = logging.getLogger("da_agent")
 
    
 class PlotPy:
@@ -57,16 +60,18 @@ def plot_process():
     '''
     os.makedirs('dabench', exist_ok=True)
     plt_files = PlotPy.find_plt_py(os.getcwd())
-    print(f'Possible plot files: {plt_files}')
+    logger.info(f'Possible plot files: {plt_files}')
 
     for py_file in plt_files:
         py_content = PlotPy.preprocess_py(py_file)
         process_py_file = py_file.replace('.py', '_process.py')
         with open(process_py_file, 'w') as py:
             py.writelines(py_content)
-        subprocess.run(['python', process_py_file], check=True)
-        if Path('dabench/plot.json').exists() and Path('dabench/result.npy').exists():
-            print(f'Made plot files for {process_py_file}')
-            return
-        else:
-            print(f'Failed to make plot files for {process_py_file}')
+        try:
+            subprocess.run(['python', process_py_file], check=True)
+            if Path('dabench/plot.json').exists() and Path('dabench/result.npy').exists():
+                logger.info(f'Made plot files for {process_py_file}')
+                return
+        except Exception as e:
+            logger.warning(f'Error from plot process: {e}')
+        logger.info(f'Failed to make plot files for {process_py_file}')

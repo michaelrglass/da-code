@@ -168,11 +168,12 @@ def test(
 
     # do the post_process now
     if is_plot_task:
+        logger.info("Doing plot processing")
         from configs.post_process import plot_process
         os.chdir(work_dir)
         plot_process()
 
-    # Move new files to output/
+    # Copy new files to output/
     move_new_files_to_output(work_dir, original_files)
 
     # Write answer.json to output/
@@ -191,6 +192,8 @@ def test(
         **trajectory
     }
     with open(os.path.join(result_dir, "dabench/result.json"), "w") as f:
+        json.dump(dabench_result, f, indent=2)
+    with open(os.path.join(work_dir, "dabench/result.json"), "w") as f:
         json.dump(dabench_result, f, indent=2)
         
 

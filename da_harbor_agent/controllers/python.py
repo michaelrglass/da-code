@@ -78,9 +78,8 @@ class PythonController:
             ["bash", "-c", command],
             cwd=self.work_dir,
             capture_output=True,
-            text=True
         )
-        output = result.stdout + result.stderr
+        output = result.stdout.decode("utf-8", errors="ignore") + result.stderr.decode("utf-8", errors="ignore")
         return output.strip()
 
     def _file_exists(self, file_path: str) -> bool:

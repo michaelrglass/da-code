@@ -66,7 +66,7 @@ def config() -> argparse.Namespace:
     parser.add_argument("--retry_failed", action="store_true", default=False)
 
     # output related
-    parser.add_argument("--output_dir", type=str, default="output_hb")
+    parser.add_argument("--output_dir", type=str, default="output")
     args = parser.parse_args()
 
     return args
@@ -81,7 +81,7 @@ def test(
 
     import uuid
     
-    experiment_id = args.model.split("/")[-1] + "-" + uuid.uuid4().hex[:8]
+    experiment_id = "daha_" + args.model.split("/")[-1] + "-" + uuid.uuid4().hex[:8]
 
     env_config = \
     {
@@ -154,7 +154,7 @@ def test(
             cmd, workdir="/workspace",
             environment={"PYTHONPATH": "/"}
         )
-        logger.info("Agent output:\n%s", output.decode("utf-8"))
+        logger.info("Agent output:\n%s", output.decode("utf-8", errors="ignore"))
 
         # Results are written to dabench/result.json by run_agent.py
         # (already in mounted directory at output_dir)
