@@ -255,11 +255,13 @@ class DA_Agent_Env(gym.Env):
         return {"added_files": added_files_list, "changed_files": changed_files_list}
     
     def _cleanup_source_files(self):
+        # FIXME: mrglass: this should also check file creation/modified time
+        #  many tasks have an 'example' result.csv which is then supposed to be overwritten with the real result.csv
         """Remove source files from output directory to save memory."""
         if not hasattr(self, 'source_files'):
             return
         
-        cleanup_enabled = os.environ.get('DA_CLEANUP_SOURCE_FILES', 'true').lower() == 'true'
+        cleanup_enabled = os.environ.get('DA_CLEANUP_SOURCE_FILES', 'false').lower() == 'true'
         if not cleanup_enabled:
             logger.info("Source file cleanup is disabled")
             return

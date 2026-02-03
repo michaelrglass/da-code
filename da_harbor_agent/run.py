@@ -58,7 +58,7 @@ def config() -> argparse.Namespace:
     parser.add_argument("--stop_token", type=str, default=None)
     
     # example config
-    parser.add_argument("--task_config","-t", type=str, default="da_code/configs/task/sa.jsonl")
+    parser.add_argument("--task_config","-t", type=str, default="da_code/configs/task/all.jsonl")
     parser.add_argument("--source_dir", type=str, default="da_code/source")
     parser.add_argument("--example_index", "-i", type=str, default="all", help="index range of the examples to run, e.g., '0-10', '2,3', 'all'")
     parser.add_argument("--example_name", "-n", type=str, default="", help="name of the example to run")
@@ -81,12 +81,11 @@ def test(
 
     import uuid
     
-    logger.warning("No suffix is provided, the experiment id will be the model name.")
     experiment_id = args.model.split("/")[-1] + "-" + uuid.uuid4().hex[:8]
 
     env_config = \
     {
-        "image_name": "da_agent-image",
+        "image_name": "da_harbor_agent-image",
         "init_args": {
             "name": experiment_id,
             "work_dir": "/workspace",
@@ -131,8 +130,12 @@ def test(
             source_dir=args.source_dir,
             mnt_dir=output_dir
         )
-    
+        post_process = task_config["post_process"] if "post_process" in task_config else []
         task = env.task_config['instruction']
+        if post_process:
+            assert len(post_process) == 1 and post_process[0] == "plot_process"
+            # this is how we indicate to the DA-Harbor-Agent that we need to use plot post process
+            task = task + "\nSave the code to produce the plot in `/app/output/plot.py`."
 
         # Run agent inside container
         cmd = [

@@ -175,8 +175,8 @@ class Evaluator:
 
         info = {"finished": result["finished"], "steps": result["steps"], 
                 "result": result["result"],
-                "added_files": result["result_files"]["added_files"],
-                "changed_files": result["result_files"]["changed_files"],
+                # "added_files": result["result_files"]["added_files"],
+                # "changed_files": result["result_files"]["changed_files"],
                 "actions": actions}
         return info
 
@@ -201,7 +201,7 @@ class Evaluator:
         """
         if isinstance(env_config, str):
             if not os.path.exists(env_config) or not os.path.isfile(env_config):
-                raise ValueError('File Path Error: Please provide a right file path')
+                raise ValueError(f'No such file: {env_config}')
             if env_config.endswith('.json'):
                 with open(env_config, 'r') as f:
                     env_configs = json.load(f)

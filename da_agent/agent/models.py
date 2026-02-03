@@ -27,6 +27,8 @@ def call_llm(payload):
                 model=model,
                 messages=payload['messages'], 
                 max_tokens=payload['max_tokens'],
+                # FIXME:
+                temperature=0.0,
                 # top_p=payload['top_p'],
                # temperature=payload['temperature']
             )

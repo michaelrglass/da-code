@@ -189,8 +189,8 @@ def compare_text(result: Union[str, List[str]], expected: Union[Dict, List[Dict]
     ignore_order = options.get('ignore_order', [False]*len(expected))
     tolerance = 1e-2
     
-    print(expected)
-    print(result)
+    # print(expected)
+    # print(result)
     output_result["options"] = {"score_rule": score_rule, 
         "ignore_order": ignore_order}
     

@@ -25,4 +25,4 @@ COPY da_harbor_agent /da_harbor_agent
 # Set the default command to run when starting the container
 CMD ["/bin/bash"]
 
-# BUILD with: docker build -f da_harbor_agent/images/da_agent-image/Dockerfile -t da_agent-image .
+# BUILD with: docker build -f da_harbor_agent/images/da_harbor_agent-image/Dockerfile -t da_harbor_agent-image .

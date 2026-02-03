@@ -63,7 +63,7 @@ def config() -> argparse.Namespace:
     parser.add_argument("--stop_token", type=str, default=None)
     
     # example config
-    parser.add_argument("--task_config","-t", type=str, default="da_code/configs/task/sa.jsonl")
+    parser.add_argument("--task_config","-t", type=str, default="da_code/configs/task/all.jsonl")
     parser.add_argument("--source_dir", type=str, default="da_code/source")
     parser.add_argument("--example_index", "-i", type=str, default="all", help="index range of the examples to run, e.g., '0-10', '2,3', 'all'")
     parser.add_argument("--example_name", "-n", type=str, default="", help="name of the example to run")
@@ -221,7 +221,12 @@ def test(
         agent.set_env_and_task(env)
     
         logger.info('Task input:' + task_config['instruction'])
-        done, result_output = agent.run()
+        try:
+            done, result_output = agent.run()
+        except Exception as e:
+            done = False
+            result_output = str(e)
+            logger.warning(e)
         trajectory = agent.get_trajectory()
 
         os.makedirs(os.path.join(output_dir, "dabench"), exist_ok=True)

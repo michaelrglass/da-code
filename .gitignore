@@ -6,9 +6,11 @@ logs/*
 *.pyc
 output_dw.zip
 *dw
-da_code/gold/*
-da_code/source/*
+da_code/gold/
+da_code/gold_sample/
+da_code/source/
 output/*
+output_hb/
 results/*
 *examples.jsonl
 temp
