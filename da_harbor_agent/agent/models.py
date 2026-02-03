@@ -27,7 +27,7 @@ def call_llm(payload):
                 model=model,
                 messages=payload['messages'], 
                 max_tokens=payload['max_tokens'],
-                # FIXME:
+                # FIXME: mrglass set temperature to zero for parity experiments, probably hurts performance
                 temperature=0.0,
                 # top_p=payload['top_p'],
                # temperature=payload['temperature']
