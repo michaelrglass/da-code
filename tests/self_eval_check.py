@@ -105,6 +105,7 @@ class SelfEvaluator:
 
         for idx, func_name in enumerate(metric_funcs):
             gold_file = gold_files[idx]
+            options = 'unset'
             try:
                 metric_func = getattr(metrics, func_name)
                 options = metric_options[idx].copy()
@@ -120,6 +121,7 @@ class SelfEvaluator:
                     score = result.get('score', 0.0)
                     details.append({
                         "metric": func_name,
+                        "options": options,
                         "score": score,
                         "gt": gold_file,
                         "details": result,
@@ -128,6 +130,7 @@ class SelfEvaluator:
                     score = result
                     details.append({
                         "metric": func_name,
+                        "options": options,
                         "score": score,
                         "gt": gold_file,
                     })
@@ -135,9 +138,11 @@ class SelfEvaluator:
                 scores.append(score)
 
             except Exception as e:
+                
                 scores.append(0.0)
                 details.append({
                     "metric": func_name,
+                    "options": options,
                     "score": 0.0,
                     "error": str(e),
                     "gt": gold_file,
@@ -222,8 +227,11 @@ class SelfEvaluator:
                 print(f"  Individual Scores: {task['scores']}")
                 if 'details' in task:
                     for detail in task['details']:
+                        print(f"    Metric {detail['metric']}")
+                        if 'options' in detail:
+                            print(f"    Options {detail['options']}")
                         if 'error' in detail:
-                            print(f"    Error in {detail['metric']}: {detail['error']}")
+                            print(f"    Error: {detail['error']}")
                         if 'gt' in detail:
                             print(f"    Ground truth: {detail['gt']}")
 

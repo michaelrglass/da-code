@@ -101,8 +101,9 @@ class PreprocessML:
                 output['errors'].append(f"ID does not match, result has extra id: {extra_id}")
                 return result_df, gold_df, output, False
             # Sort the dataframes by id and drop the id column
-            gold_df = gold_df.sort_values(by=id).drop(columns=[id], axis=1)
-            result_df = result_df.sort_values(by=id).drop(columns=[id], axis=1)
+            # mrglass: remove axis=1 for pandas 3
+            gold_df = gold_df.sort_values(by=id).drop(columns=[id])
+            result_df = result_df.sort_values(by=id).drop(columns=[id])
         
         gold_df.sort_index(axis=1, inplace=True)
         result_df.sort_index(axis=1, inplace=True)
@@ -203,7 +204,11 @@ class CalculateML:
     @staticmethod
     def calculate_accuracy(result: array_like, gold: array_like, task_type: Optional[str]=None, **kwargs):
         output = {'errors': []}
-        
+        if isinstance(gold, pd.DataFrame):
+            gold = gold.iloc[:, 0]
+        if isinstance(result, pd.DataFrame):
+            result = result.iloc[:, 0]
+
         label_encoder = LabelEncoder()
         def is_label_encoder_fitted(le):
             return hasattr(le, 'classes_')

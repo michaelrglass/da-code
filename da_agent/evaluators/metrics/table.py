@@ -206,8 +206,6 @@ def compare_csv(result: str, expected, **options) -> float:
         return 0
     try:
         df1 = pd.read_csv(result, low_memory=False, nrows=10000)  # Limit rows for performance
-        if df1.empty:
-            return 0
     except (pd.errors.EmptyDataError, pd.errors.ParserError) as e:
         logging.warning(f"Failed to read result CSV {result}: {e}")
         return 0
@@ -215,11 +213,14 @@ def compare_csv(result: str, expected, **options) -> float:
     for i in range(len(expected)):
         try:
             df2 = pd.read_csv(expected[i], low_memory=False, nrows=10000)
-            if df2.empty:
-                output.append(0)
-                continue
         except (pd.errors.EmptyDataError, pd.errors.ParserError) as e:
             logging.warning(f"Failed to read expected CSV {expected[i]}: {e}")
+            output.append(0)
+            continue
+        if df1.empty and df2.empty:
+            output.append(total_scores[i])
+            continue
+        elif df1.empty or df2.empty:
             output.append(0)
             continue
         pre_score = csv_score(df1, df2, condition_cols_=condition_cols[i], score_rule_=score_rule[i], ignore_order_=ignore_order[i], total_scores_=total_scores[i])
@@ -284,7 +285,7 @@ def compare_sqlite(result: str, expected: str, **options) -> float:
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables = cursor.fetchall()
         conn.close()
-        return [table[0] for table in tables]
+        return [table[0] for table in tables if table[0] != 'sqlite_sequence']
     
     condition_tabs = options.get('condition_tabs', [])
 

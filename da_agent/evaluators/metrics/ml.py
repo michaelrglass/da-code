@@ -88,12 +88,16 @@ def compare_ml(result: str, expected: str| List[str]=[], **kwargs) -> dict:
         return output_ml
     
     if scale:
-        score = min(max((score - lower_bound) / (upper_bound - lower_bound), 0), 1)
+        #mrglass: for some metrics lower is better
+        if metric in LOWER_METRICS:
+            score = min(max((upper_bound - score) / (upper_bound - lower_bound), 0), 1)
+        else:
+            score = min(max((score - lower_bound) / (upper_bound - lower_bound), 0), 1)
         output_ml.update({'upper_bound': upper_bound, 'lower_bound': lower_bound})
 
     output_ml['errors'].extend(output['errors'])
     output_ml['score'] = score
-    
+
     return output_ml
 
 def compare_competition_ml(result: str, expected: str|List[str], **kwargs) -> dict:
@@ -154,12 +158,16 @@ def compare_competition_ml(result: str, expected: str|List[str], **kwargs) -> di
             return output_ml
     
     if scale:
-        score = min(max((score - lower_bound) / (upper_bound - lower_bound), 0), 1)
+        #mrglass: for some metrics lower is better
+        if metric in LOWER_METRICS:
+            score = min(max((upper_bound - score) / (upper_bound - lower_bound), 0), 1)
+        else:
+            score = min(max((score - lower_bound) / (upper_bound - lower_bound), 0), 1)
         output_ml.update({'upper_bound': upper_bound, 'lower_bound': lower_bound})
 
     output_ml['errors'].extend(output['errors'])
     output_ml['score'] = score
-    
+
     return output_ml
    
 
