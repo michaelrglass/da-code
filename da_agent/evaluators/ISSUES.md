@@ -71,3 +71,19 @@ This is partly a consequence of issues 2 and 3, but even after fixing those, the
 When `condition_tabs` is empty, `get_table_names` discovers all tables via `sqlite_master`, which includes `sqlite_sequence` — an internal SQLite bookkeeping table for autoincrement sequences. This table is not user data and should not be compared.
 
 **Fix applied**: Filtered out `sqlite_sequence` from `get_table_names` results.
+
+### 10. empty list should match empty list (FIXED)
+
+**Location** `metrics/text.py` `calculate_list`
+
+The empty list was not matching the empty list causing the oracle solution to fail in two cases.
+
+**Fix applied**: Check for both lists being empty.
+
+### 11. gold overwritten with result (FIXED)
+
+**Location** `metrics/script/ml_script.py` `calculate_accuracy`
+
+Under certain conditions gold was overwritten with the result numpy array: gold = (result.reshape ...)
+
+**Fix applied** gold = (*gold*.reshape ...)

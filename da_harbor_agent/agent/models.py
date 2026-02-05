@@ -14,8 +14,8 @@ def call_llm(payload):
     # Point the OpenAI client at your LiteLLM proxy.
     # Most LiteLLM proxies expose an OpenAI-compatible API under /v1.
     client = OpenAI(
-        base_url="https://ete-litellm.ai-models.vpc-int.res.ibm.com/v1",
-        api_key=os.environ.get("IBM_LITELLM_API_KEY", "DUMMY")
+        base_url=os.environ.get("OPENAI_BASE_URL"),
+        api_key=os.environ.get("OPENAI_API_KEY", "DUMMY")
     )
     code_value = ""
     

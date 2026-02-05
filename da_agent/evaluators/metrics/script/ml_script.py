@@ -251,7 +251,7 @@ class CalculateML:
                 raise ValueError(f'Expected Gold as a 1D or 2D array, but got {gold.ndim}')
             elif gold.ndim == 2 and gold.shape[-1] > 1:
                 raise ValueError(f'Expected Gold as 1 column array, but got {gold.shape[-1]}') 
-            gold = result.reshape(-1,) if gold.ndim == 2 else result
+            gold = gold.reshape(-1,) if gold.ndim == 2 else gold
 
         try:
             score = accuracy_score(y_true=gold, y_pred=result)
