@@ -159,7 +159,7 @@ class DA_Agent_Env(gym.Env):
         logger.info(f"Container {self.container_name} stopped and removed.")
         
     def _construct_container(self):
-        client = docker.from_env()
+        client = docker.from_env(timeout=300)
         container_name = self.container_name
         #### delete existing container
         try:
@@ -182,7 +182,7 @@ class DA_Agent_Env(gym.Env):
         extra_params = {'detach': True, 'tty': True, 'stdout': True, 'stderr': True, 'stdin_open': True, **kwargs}
 
         try:
-            client: DockerClient = docker.from_env()
+            client: DockerClient = docker.from_env(timeout=300)
             image = client.images.get(self.image_name)
             self.container: Container = client.containers.run(image=image, volumes=volumes, **extra_params)
         except ImageNotFound as e:
