@@ -229,22 +229,26 @@ def test(
             logger.warning(e)
         trajectory = agent.get_trajectory()
 
-        os.makedirs(os.path.join(output_dir, "dabench"), exist_ok=True)
-        result_files = env.post_process()
-        
-        # Clean up source files before saving results
-        env._cleanup_source_files()
-        
-        dabench_result = {"finished": done, "steps": len(trajectory["trajectory"]),
-                           "result": result_output,"result_files": result_files, **trajectory}
-        with open(os.path.join(output_dir, "dabench/result.json"), "w") as f:
-            json.dump(dabench_result, f, indent=2)
-        
-        logger.info("Finished %s", instance_id)
         try:
-            env.close()
+            os.makedirs(os.path.join(output_dir, "dabench"), exist_ok=True)
+            result_files = env.post_process()
+
+            # Clean up source files before saving results
+            env._cleanup_source_files()
+
+            dabench_result = {"finished": done, "steps": len(trajectory["trajectory"]),
+                               "result": result_output,"result_files": result_files, **trajectory}
+            with open(os.path.join(output_dir, "dabench/result.json"), "w") as f:
+                json.dump(dabench_result, f, indent=2)
+
+            logger.info("Finished %s", instance_id)
         except Exception as e:
-            logger.warning(f"Error closing container: {e}")
+            logger.warning(f"Error during post-processing: {e}")
+        finally:
+            try:
+                env.close()
+            except Exception as e:
+                logger.warning(f"Error closing container: {e}")
 
 
 
