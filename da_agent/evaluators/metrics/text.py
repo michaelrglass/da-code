@@ -145,7 +145,7 @@ def compare_text(result: Union[str, List[str]], expected: Union[Dict, List[Dict]
 
                 json_data = json5.loads(json_str)
                 return json_data
-            except json5.JSONDecodeError:
+            except ValueError:
                 return None   
         else:
             return None
