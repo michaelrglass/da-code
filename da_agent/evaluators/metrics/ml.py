@@ -59,7 +59,7 @@ def compare_ml(result: str, expected: str| List[str]=[], **kwargs) -> dict:
             output_ml['errors'].append(f"result csv columns are different from gold csv: {list(set(result_df.columns) - set(gold_df.columns))}")
         gold_df, unique_column_gold, target_column_gold \
             = PreprocessML.process_csv(gold_df, task_type, **{'target_column': target_column})
-        column_dict = {'unique_column': unique_column_gold,
+        column_dict = {'id_columns': unique_column_gold,
                 'target_column': target_column_gold}
     else:
         column_dict = {}

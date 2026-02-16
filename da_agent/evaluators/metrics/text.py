@@ -206,7 +206,7 @@ def compare_text(result: Union[str, List[str]], expected: Union[Dict, List[Dict]
     for idx, gold in enumerate(expected):
         for ref in result:
             socre = CalculateText.text_score(gold, ref, score_rule_=score_rule[idx],
-                ignore_order_=ignore_order, tolerance_=tolerance)
+                ignore_order_=ignore_order[idx], tolerance_=tolerance)
             scores.append(socre)
     
     output_result["score"] = max(scores)
